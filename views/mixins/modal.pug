@@ -1,0 +1,24 @@
+mixin modal(reservoir)
+  div(id="modal-" + reservoir.id, uk-modal)
+    .uk-modal-dialog
+      button.uk-modal-close-default(type="button", uk-close)
+      .uk-modal-header
+        h2.uk-modal-title #{reservoir.name}
+      form(action="/api/info", method="POST")
+        .uk-modal-body
+          .uk-margin
+            label.uk-form-label(for="form-horizontal-text") Unique identifier
+            input.uk-input(type="text", placeholder=reservoir.id, value=reservoir.id, disabled)
+            input.uk-input(name="id", type="text", placeholder=reservoir.id, value=reservoir.id, hidden)
+          .uk-margin
+            label.uk-form-label(for="form-horizontal-text") Reservoir name
+            input.uk-input(name="name", type="text", placeholder=reservoir.name, value=reservoir.name)
+          .uk-margin
+            label.uk-form-label(for="form-horizontal-text") Maximum water level (in meters)
+            input.uk-input(id=`max-${reservoir.id}`, name="max", type="number", step="any", placeholder=reservoir.max, value=reservoir.max)
+        .uk-modal-footer
+          .uk-align-left.uk-margin-remove-bottom
+            a.uk-button.uk-button-danger(href=`/api/delete?id=${reservoir.id}`) Delete
+          .uk-align-right
+            button.uk-button.uk-button-default.uk-modal-close(type="button") Cancel
+            button.uk-button.uk-button-primary(type="submit").uk-margin-left Save

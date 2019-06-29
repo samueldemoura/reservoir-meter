@@ -1,0 +1,18 @@
+block navbar
+  nav.uk-navbar-container.uk-navbar-transparent.uk-background-primary.uk-light(uk-navbar)
+    .uk-navbar-left
+      ul.uk-navbar-nav
+        li.uk-navbar-item.uk-logo reservoir-meter
+
+    .uk-navbar-right
+      ul.uk-navbar-nav
+        if (title === 'Dashboard')
+          li.uk-navbar-item.uk-active
+            a(href="/") Dashboard
+          li.uk-navbar-item
+            a(href="/alerts") Alerts
+        else
+          li.uk-navbar-item
+            a(href="/") Dashboard
+          li.uk-navbar-item.uk-active
+            a(href="/alerts") Alerts

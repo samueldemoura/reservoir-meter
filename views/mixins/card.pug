@@ -1,0 +1,19 @@
+mixin card(reservoir)
+  .uk-card.uk-card-default.uk-width-3-4.uk-align-center
+    .uk-card-header
+      .uk-grid-small.uk-flex-middle(uk-grid)
+        .uk-width-auto
+          img.uk-border-circle(width="40", height="40", src="/img/water.png")
+        .uk-width-expand
+          h3.uk-card-title.uk-margin-remove-bottom #{reservoir.name}
+          p.uk-text-meta.uk-margin-remove-top(id=`progress-text-${reservoir.id}`) Latest reading: Unknown
+        .uk-width-expand
+          progress.uk-progress(id=`progress-${reservoir.id}`, value="0")
+    .uk-card-body
+      canvas(id="chart-" + reservoir.id)
+    .uk-card-footer
+      .uk-grid-small.uk-child-width-auto(uk-grid)
+        div
+          a.uk-button.uk-button-text(href="#modal-" + reservoir.id, uk-toggle) Details
+          include modal.pug
+          +modal(reservoir)

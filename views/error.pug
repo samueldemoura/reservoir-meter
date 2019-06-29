@@ -1,0 +1,9 @@
+extends layout
+
+block content
+  .uk-container.uk-height-viewport.uk-background-primary
+    .uk-padding
+      .uk-card.uk-card-default.uk-card-body
+        h1.uk-margin-remove-bottom= message
+        h2.uk-margin-remove-top= error.status
+        pre #{error.stack}

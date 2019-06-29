@@ -1,0 +1,15 @@
+extends layout
+
+block content
+  include includes/navbar.pug
+  include mixins/alert.pug
+
+  .uk-container.uk-container-expand.uk-background-secondary.uk-light
+    .uk-container.uk-margin-top
+      .uk-align-left
+        h3.uk-margin-remove-bottom= title
+        p.uk-margin-remove-top #{description}
+
+  .uk-container.uk-margin-top
+    each alert in alerts
+      +alert(alert)

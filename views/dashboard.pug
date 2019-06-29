@@ -1,0 +1,25 @@
+extends layout
+
+block content
+  include includes/navbar.pug
+  include mixins/card.pug
+
+  .uk-container.uk-container-expand.uk-background-secondary.uk-light
+    .uk-container.uk-margin-top
+      .uk-align-left
+        h3.uk-margin-remove-bottom= title
+        p.uk-margin-remove-top.uk-margin-remove-bottom #{description}
+      .uk-align-right
+        div(uk-form-custom="target: > * > span:first-child")
+          select
+            option(value="") Sort by...
+            option(value="1") Name
+            option(value="2") Level (Ascending)
+            option(value="3") Level (Descending)
+          button.uk-button.uk-button-link(type="button", tabindex="-1")
+            span
+            span(uk-icon="icon: chevron-down")
+
+  .uk-container.uk-margin-top
+    each reservoir in reservoirs
+      +card(reservoir)

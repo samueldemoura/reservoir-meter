@@ -1,0 +1,15 @@
+doctype html
+html
+  head
+    title= title
+    link(rel='stylesheet', href='/css/uikit.min.css')
+    link(rel='stylesheet', href='/css/Chart.min.css')
+    link(rel='icon', href='/img/favicon.ico')
+    script(src='/js/uikit.min.js')
+    script(src='/js/uikit-icons.min.js')
+    script(src='/js/Chart.bundle.min.js')
+
+    if reservoirs
+      script(src='/js/dashboard.js')
+  body
+    block content

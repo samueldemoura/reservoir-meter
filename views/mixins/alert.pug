@@ -1,0 +1,9 @@
+mixin alert(alert)
+  .uk-card.uk-card-default.uk-width-3-4.uk-align-center
+    .uk-card-body
+      if (alert.level === 'warning')
+        .uk-card-badge.uk-label.uk-label-warning #{alert.level}
+      else
+        .uk-card-badge.uk-label.uk-label-danger #{alert.level}
+      h3.uk-card-title= alert.title
+      p= alert.content
