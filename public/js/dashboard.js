@@ -83,7 +83,7 @@ function updateChart(id) {
         const respData = JSON.parse(resp).map(element => JSON.parse(element));
         const chart = charts[id];
         chart.data.labels = respData.map(x => x[0]);
-        chart.data.datasets[0].data = respData.map(x => (x[1] / max) * 100);
+        chart.data.datasets[0].data = respData.map(x => ((x[1] / max) * 100).toFixed(2));
 
         chart.update();
 
