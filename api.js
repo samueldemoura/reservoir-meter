@@ -55,6 +55,7 @@ module.exports = {
                     id: resp[0],
                     name: info.name,
                     max: info.max,
+                    min: info.min,
                 };
             });
 
@@ -84,6 +85,7 @@ module.exports = {
                 this.setReservoirInfo(id, {
                     name: `Reservoir #${id}`,
                     max: 4.5,
+                    min: 1.125,
                 });
             }
         });

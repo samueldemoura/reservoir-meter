@@ -16,6 +16,9 @@ mixin modal(reservoir)
           .uk-margin
             label.uk-form-label(for="form-horizontal-text") Maximum water level (in meters)
             input.uk-input(id=`max-${reservoir.id}`, name="max", type="number", step="any", placeholder=reservoir.max, value=reservoir.max)
+          .uk-margin
+            label.uk-form-label(for="form-horizontal-text") Minimum water level before firing off alert (in meters)
+            input.uk-input(id=`min-${reservoir.id}`, name="min", type="number", step="any", placeholder=reservoir.min, value=reservoir.min)
         .uk-modal-footer
           .uk-align-left.uk-margin-remove-bottom
             a.uk-button.uk-button-danger(href=`/api/delete?id=${reservoir.id}`) Delete
