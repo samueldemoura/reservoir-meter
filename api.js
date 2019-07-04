@@ -49,6 +49,10 @@ module.exports = {
      */
     getReservoirList(callback) {
         this.getReservoirIds(async (err, resp) => {
+            if (err) {
+                throw err;
+            }
+
             const promises = resp.map(async () => {
                 const info = await db.hgetallAsync(`${resp}_info`);
                 return {
@@ -59,8 +63,9 @@ module.exports = {
                 };
             });
 
-            const reservoirs = await Promise.all(promises);
-            callback(err, reservoirs);
+            Promise.all(promises)
+                .then(reservoirs => callback(err, reservoirs))
+                .catch(ex => callback(ex, null));
         });
     },
 
