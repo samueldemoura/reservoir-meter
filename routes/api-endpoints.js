@@ -41,6 +41,7 @@ router.post('/info', (req, res, next) => {
     const data = {
         name: req.body.name,
         max: req.body.max,
+        min: req.body.min,
     };
 
     api.setReservoirInfo(req.body.id, data, (err) => {
@@ -60,6 +61,17 @@ router.get('/delete', (req, res, next) => {
         }
 
         return res.redirect('/');
+    });
+});
+
+// GET alerts
+router.get('/alerts', (req, res, next) => {
+    api.getAlerts((err, resp) => {
+        if (err) {
+            return next(err);
+        }
+
+        return res.json(resp);
     });
 });
 

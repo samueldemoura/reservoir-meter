@@ -49,17 +49,23 @@ module.exports = {
      */
     getReservoirList(callback) {
         this.getReservoirIds(async (err, resp) => {
+            if (err) {
+                throw err;
+            }
+
             const promises = resp.map(async () => {
                 const info = await db.hgetallAsync(`${resp}_info`);
                 return {
                     id: resp[0],
                     name: info.name,
                     max: info.max,
+                    min: info.min,
                 };
             });
 
-            const reservoirs = await Promise.all(promises);
-            callback(err, reservoirs);
+            Promise.all(promises)
+                .then(reservoirs => callback(err, reservoirs))
+                .catch(ex => callback(ex, null));
         });
     },
 
@@ -88,6 +94,7 @@ module.exports = {
                 this.setReservoirInfo(id, {
                     name: `Reservoir #${id}`,
                     max: 4.5,
+                    min: 1.125,
                 });
             }
         });
