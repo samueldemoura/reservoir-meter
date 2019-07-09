@@ -79,7 +79,11 @@ module.exports = {
      */
     appendReservoirDataPoint(id, value, callback) {
         // Create reservoir in database if it doesn't exist
-        this.getReservoirInfo(id, (resp) => {
+        this.getReservoirInfo(id, (err, resp) => {
+            if (err) {
+                throw err;
+            }
+
             if (!resp) {
                 this.setReservoirInfo(id, {
                     name: `Reservoir #${id}`,
