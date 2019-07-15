@@ -29,6 +29,48 @@ module.exports = {
     },
 
     /**
+     * Returns a list of reservoirs under their minimal level
+     */
+    getAlertList(callback) {
+        this.getReservoirList((err, list) => {
+            const promises = [];
+
+            if (!list) {
+                return callback([]);
+            }
+
+            list.map((reservoir) => {
+                const promise = new Promise((resolve, reject) => {
+                    this.getReservoirDataPoints(reservoir.id, 1, (err, response) => {
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        const dataPoint = JSON.parse(response);
+                        if (dataPoint[1] < reservoir.min) {
+                            return resolve({
+                                id: reservoir.id,
+                                name: reservoir.name,
+                                min: reservoir.min,
+                                level: dataPoint[1],
+                            });
+                        }
+                        else {
+                            return resolve(false);
+                        }           
+                    });
+                });
+                promises.push(promise);
+            });
+
+            Promise.all(promises)
+                .then((alerts) => {
+                    return callback(null, alerts);
+                });
+        });
+    },
+
+    /**
      * Returns list of all reservoir identifiers in the database.
      */
     getReservoirIds(callback) {
