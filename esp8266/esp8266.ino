@@ -2,6 +2,9 @@
 #include <ESP8266HTTPClient.h>
 #include <Ultrasonic.h>
 
+// Represents wether device will go into WiFi config mode or regular usage.
+bool config_mode = false;
+
 // Replace these with your WiFi network settings.
 const char *ssid = "Redmi note 5";
 const char *password = "123456789";
@@ -18,11 +21,20 @@ Ultrasonic sensor(D2, D4); // trig, echo
 // Initialize HTTP client
 HTTPClient http;
 
+// Prepare pointer to webserver.
+WiFiServer *server = nullptr;
+
+/**
+ * Start up webserver. Runs when device fails to connect to WiFi on startup.
+ */
+void serverSetup() {
+    server = new WiFiServer(80); 
+}
+
 /**
  * Loop that runs while device is in configuration mode (exposing WiFi config page)
  */
-WiFiServer server(80);
-void serverLoop(WiFiServer &server) {
+void serverLoop() {
     // Listen for incoming clients
     WiFiClient client = server->available();
 
@@ -87,13 +99,27 @@ void setup() {
         if (tryCount > 5) {
             // Failed to connect to WiFi after 10 seconds of trying.
             // Initialize config mode.
-            // TODO
+            Serial.println(" ! Failed to connect to WiFi AP. Starting config mode...");
+            
+            config_mode = true;
+            serverSetup();
         }
     }
 
     Serial.println("");
     Serial.print(" * Success! IP address is: ");
     Serial.println(WiFi.localIP());
+}
+
+/**
+ * Default loop function.
+ */
+void loop() {
+    if (!config_mode) {
+        sensorLoop();
+    } else {
+        serverLoop();
+    }
 }
 
 /**
