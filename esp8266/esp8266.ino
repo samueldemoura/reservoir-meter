@@ -1,3 +1,6 @@
+#include <string>
+#include <iostream>
+#include <fstream>
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <Ultrasonic.h>
@@ -6,11 +9,11 @@
 bool config_mode = false;
 
 // Replace these with your WiFi network settings.
-const char *ssid = "Redmi note 5";
-const char *password = "123456789";
+std::string *ssid;
+std::string *password;
 
 // Replace the IP in here with the IP address of your web server.
-const char *url = "http://192.168.43.222:3000/api/data";
+std::string *url;
 
 // Each reservoir must have an unique identifier.
 const char *id = "1234";
@@ -22,13 +25,18 @@ Ultrasonic sensor(D2, D4); // trig, echo
 HTTPClient http;
 
 // Prepare pointer to webserver.
-WiFiServer *server = nullptr;
+WiFiServer *server;
 
 /**
  * Start up webserver. Runs when device fails to connect to WiFi on startup.
  */
 void serverSetup() {
-    server = new WiFiServer(80); 
+    bool wifiResult = WiFi.softAP("reservoir-meter-config-wifi", "1302");
+    if (wifiResult) {
+        server = new WiFiServer(80);
+    } else {
+        // TODO: Treat WiFi creation failure
+    }
 }
 
 /**
@@ -38,8 +46,9 @@ void serverLoop() {
     // Listen for incoming clients
     WiFiClient client = server->available();
 
-    String header = "";
-    String currentLine = "";
+    std::string header = "";
+    std::string currentLine = "";
+    bool isPOST = false;
     
     if (client) {
         while (client.connected()) {
@@ -49,18 +58,41 @@ void serverLoop() {
                 header += chr;
 
                 if (chr == '\n') {
-                    if (currentLine.length() == 0) {
-                        // Two newlines in a row = client HHTP request
+                    if (currentLine.find("POST") == 0) {
+                        // This is a POST request coming in.
+                        isPOST = true;
+                    }
+                    if (isPOST && currentLine.find("name=") == 0) {
+                        // currentLine has POST data in it
+                        std::string ssid = currentLine.substr(0, currentLine.find("&password=") - 1);
+                        std::string password = currentLine.substr(currentLine.find("&password="), currentLine.find("&url=") - 1);
+                        std::string url = currentLine.substr(currentLine.find("&url="));
+
+                        Serial.print(" * Received WiFi config: ");
+                        Serial.print(ssid.c_str());
+                        Serial.print(", ");
+                        Serial.println(password.c_str());
+                        Serial.print(" * Received server IP: ");
+                        Serial.println(url.c_str());
+
+                        // Write to file
+                        writeConfig(ssid, password, url);
+                    }
+                    else if (!isPOST && currentLine.length() == 0) {
+                        // Two newlines in a row = client HTTP request
                         // ended. Send response:
                         Serial.println(" * Incoming data from client: ");
-                        Serial.println(header);
+                        Serial.println(header.c_str());
                         
                         client.println(
                           "HTTP/1.1 200 OK\n"
                           "Content-type:text/html\n"
                           "Connection: close\n");
 
-                        // TODO: Send HTML page here
+                        // Send the HTML of the config page.
+                        client.println(
+                           "<!DOCTYPE html><html><head><title>Title</title><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/uikit/3.1.6/css/uikit.min.css\" /> <script src=\"https://cdnjs.cloudflare.com/ajax/libs/uikit/3.1.6/js/uikit.min.js\"></script> </head><body><nav class=\"uk-navbar-container uk-navbar-transparent uk-background-primary uk-light\" uk-navbar><div class=\"uk-navbar-left\"><ul class=\"uk-navbar-left\"><li class=\"uk-navbar-item uk-logo\">reservoir-meter</li></ul></div> </nav><div class=\"uk-container uk-container-small\"><form class=\"uk-margin-top\" action=\"/\", method=\"POST\"><fieldset class=\"uk-fieldset\"><legend class=\"uk-legend\">WiFi Configuration</legend><div class=\"uk-margin\"> <input class=\"uk-input\" type=\"text\" name=\"name\" placeholder=\"WiFi AP name\"></div><div class=\"uk-margin\"> <input class=\"uk-input\" type=\"password\" name=\"password\" placeholder=\"WiFi password\"></div><div class=\"uk-margin\"> <input class=\"uk-input\" type=\"text\" name=\"url\" placeholder=\"Server IP\"></div><button class=\"uk-button uk-button-primary\" type=\"submit\">Save</button></fieldset></form></div></body></html>"
+                        );
 
                         // Done.
                         break;
@@ -86,9 +118,12 @@ void serverLoop() {
 void setup() {
     Serial.begin(115200);
 
+    // Read config from file
+    readConfig();
+
     // Connect to WiFi
     Serial.print(" * Connecting to WiFi");
-    WiFi.begin(ssid, password);
+    WiFi.begin(ssid->c_str(), password->c_str());
     unsigned short int tryCount = 0;
 
     while (WiFi.status() != WL_CONNECTED) {
@@ -139,11 +174,42 @@ void sensorLoop() {
  */
 int postData(HTTPClient *http, long value)
 {
-    http->begin(url);
+    http->begin(url->c_str());
     http->addHeader("Content-Type", "application/x-www-form-urlencoded");
 
     char buf[20];
     snprintf(buf, 20, "id=%s&value=%f", id, (float)value / 100.f);
 
     return http->POST(buf);
+}
+
+/**
+ * Functions to manipulate config file.
+ */
+void readConfig() {
+    Serial.println(" * Attempting to open config file for reading...");
+    delay(1000);
+    std::ifstream configFile("config", std::ios::in);
+
+    if (configFile.is_open()) {
+        Serial.println(" * Opened config file. Reading values...");
+        getline(configFile, *ssid);
+        getline(configFile, *password);
+        getline(configFile, *url);
+        configFile.close();
+    } else {
+        // TODO: Treat file open error
+        // Use defaults while config does not exist
+        Serial.println(" * Failed to open config file. Using default values...");
+        ssid = new std::string("fakessid");
+        password = new std::string("fakepassword");
+        url = new std::string("fakeurl");
+    }
+}
+
+void writeConfig(std::string ssid, std::string password, std::string url) {
+    std::ofstream configFile;
+    configFile.open("config", std::ios::out | std::ios::trunc);
+    configFile << ssid << "\n" << password << "\n" << url << "\n";
+    configFile.close();
 }
