@@ -6,8 +6,8 @@
 
 #include "RequestHandler.h"
 #include "ConfigHandler.h"
-#include <Arduino.h>
 #include <ESP8266HTTPClient.h>
+#include <Arduino.h>
 #include <FS.h>
 #include <string>
 
@@ -106,6 +106,11 @@ unsigned char RequestHandler::HandleIncomingChar() {
       std::string ssid = this->cur_line.substr(this->cur_line.find("name=") + 5, ssid_len);
       std::string password = this->cur_line.substr(this->cur_line.find("&password=") + 10, password_len);
       std::string url = this->cur_line.substr(this->cur_line.find("&url=") + 5);
+
+      // Prepend 'http://' to string in case it's missing.
+      if (url.find("http://") != 0) {
+        url = "http://" + url;
+      }
 
       // Append trailing slash and 'api/data' to url endpoint string.
       if (url.back() != '/') {
