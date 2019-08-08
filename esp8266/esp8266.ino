@@ -30,7 +30,7 @@ WiFiServer *server;
    Start up webserver. Runs when device fails to connect to WiFi on startup.
 */
 void serverSetup() {
-    bool wifiResult = WiFi.softAP("reservoirmeter", "2907158928", false, 2);
+    bool wifiResult = WiFi.softAP("reservoirmeter", "2907158928", false, 4);
     if (wifiResult) {
         server = new WiFiServer(80);
         server->begin();
@@ -44,8 +44,8 @@ void serverSetup() {
   }
 
 /**
-   Loop that runs while device is in configuration mode (exposing WiFi config page)
-*/
+ * Loop that runs while device is in configuration mode (exposing WiFi config page)
+ */
 void serverLoop() {
     // Listen for incoming clients
     WiFiClient client = server->available();
@@ -53,6 +53,8 @@ void serverLoop() {
     std::string header = "";
     std::string currentLine = "";
     bool isPOST = false;
+    bool readingBody = false;
+    int contentLength;
 
     if (client) {
         while (client.connected()) {
@@ -72,36 +74,22 @@ void serverLoop() {
                         isPOST = true;
                         Serial.println(" * Detected incoming POST request");
                     }
-                    if (isPOST && currentLine.find("name=") != -1) {
-                        // currentLine has POST data in it
-                        std::string ssid = currentLine.substr(currentLine.find("name="), currentLine.find("&password=") - 1);
-                        std::string password = currentLine.substr(currentLine.find("&password="), currentLine.find("&url=") - 1);
-                        std::string url = currentLine.substr(currentLine.find("&url="));
-
-                        Serial.print(" * Received WiFi config: ");
-                        Serial.print(ssid.c_str());
-                        Serial.print(", ");
-                        Serial.println(password.c_str());
-                        Serial.print(" * Received server IP: ");
-                        Serial.println(url.c_str());
-
-                        // Write to file
-                        writeConfig(ssid, password, url);
+                    
+                    if (isPOST && currentLine.find("Content-Length: ") != -1) {
+                        Serial.print(" * Detected Content-Length: ");
+                        contentLength = std::atoi(currentLine.substr(16).c_str());
+                        Serial.println(contentLength);
+                        currentLine = "";
                     }
-                    else if (currentLine.length() == 0) {
+                    else if (isPOST && currentLine.length() == 0) {
+                        // Body of POST request starts here.
+                        Serial.println(" * Started reading body...");
+                        readingBody = true;
+                        currentLine = "";
+                    }
+                    else if (!isPOST && currentLine.length() == 0) {
                         // Two newlines in a row = client HTTP request
                         // ended. Send response:
-                        if (isPOST) {
-                          // TODO: treat POST end
-                          Serial.println(" * Incoming POST data from client: ");
-                          Serial.println(header.c_str());
-
-                          client.println(
-                            "HTTP/1.1 200 OK\n"
-                            "Content-type:text/html\n"
-                            "Connection: close\n");
-                          break;
-                        } else {
                           Serial.println(" * Incoming non-POST data from client: ");
                           Serial.println(header.c_str());
   
@@ -117,7 +105,6 @@ void serverLoop() {
   
                           // Done.
                           break;
-                        }
                     }
                     else {
                       // Got a regular newline.
@@ -126,6 +113,28 @@ void serverLoop() {
                 } else if (chr != '\r') {
                     // Got something that's not \n or \r, add to currentLine
                     currentLine += chr;
+
+                    if (isPOST && readingBody && currentLine.length() == contentLength) {
+                        Serial.println(currentLine.c_str());
+                        // Reached end of POST request body
+                        int ssidLength = currentLine.find("&password=") - 5;
+                        int passwordLength = (currentLine.find("&url=")) - (currentLine.find("&password=") + 10);
+
+                        std::string ssid = currentLine.substr(currentLine.find("name=") + 5, ssidLength);
+                        std::string password = currentLine.substr(currentLine.find("&password=") + 10, passwordLength);
+                        std::string url = currentLine.substr(currentLine.find("&url=") + 5);
+
+                        Serial.print(" * Received WiFi config: ");
+                        Serial.print(ssid.c_str());
+                        Serial.print(", ");
+                        Serial.println(password.c_str());
+                        Serial.print(" * Received server IP: ");
+                        Serial.println(url.c_str());
+
+                        // Write to file
+                        writeConfig(ssid, password, url);
+                        break;
+                    }
                 }
             }
         }
