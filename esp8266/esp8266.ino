@@ -2,6 +2,7 @@
 #include <ESP8266WiFi.h>
 #include <FS.h>
 #include <Ultrasonic.h>
+#include <algorithm>
 #include <string>
 
 /**
@@ -141,6 +142,15 @@ void serverLoop() {
             std::string password = currentLine.substr(currentLine.find("&password=") + 10, passwordLength);
             std::string url = currentLine.substr(currentLine.find("&url=") + 5);
 
+            // Append '/api/data' to url string
+            if (url.back() != '/') {
+              url += '/';
+            }
+            url += "api/data";
+
+            // Treat spaces in WiFi ssid
+            std::replace(ssid.begin(), ssid.end(), '+', ' ');
+
             Serial.print(" * Received WiFi config: ");
             Serial.print(ssid.c_str());
             Serial.print(", ");
@@ -177,8 +187,12 @@ void setup() {
   readConfig();
 
   // Try to connect to WiFi.
-  Serial.print(" * Connecting to WiFi");
-  WiFi.begin(ssid->c_str(), password->c_str());
+  Serial.print(" * Connecting to WiFi, ssid: ");
+  Serial.print(*ssid);
+  Serial.print(", password: ");
+  Serial.print(*password);
+  
+  WiFi.begin(*ssid, *password);
 
   unsigned short int tryCount = 0;
   while (WiFi.status() != WL_CONNECTED) {
@@ -186,10 +200,10 @@ void setup() {
     Serial.print(".");
     ++tryCount;
 
-    if (tryCount > 5) {
+    if (tryCount > 25) {
       // Failed to connect to WiFi after a few seconds of trying.
       // Initialize config mode.
-      Serial.println(" ! Failed to connect to WiFi AP.");
+      Serial.println("\n ! Failed to connect to WiFi AP.");
       config_mode = true;
       break;
     }
@@ -221,9 +235,10 @@ void loop() {
  */
 void sensorLoop() {
   delay(500);
-  long reading = sensor.convert(sensor.timing(), Ultrasonic::CM);
-  Serial.print(" > Reading: ");
-  Serial.println(reading);
+  unsigned long reading = sensor.convert(sensor.timing(), Ultrasonic::CM);
+  Serial.print(" -> Sensor reading: ");
+  Serial.print(reading);
+  Serial.println("cm");
 
   postData(&http, reading);
 }
@@ -254,6 +269,10 @@ void readConfig() {
     ssid = new String(configFile.readStringUntil('\n'));
     password = new String(configFile.readStringUntil('\n'));
     url = new String(configFile.readStringUntil('\n'));
+
+    ssid->trim();
+    password->trim();
+    url->trim();
 
     configFile.close();
   } else {
