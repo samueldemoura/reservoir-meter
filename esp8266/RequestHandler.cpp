@@ -8,6 +8,7 @@
 #include "ConfigHandler.h"
 #include <Arduino.h>
 #include <ESP8266HTTPClient.h>
+#include <FS.h>
 #include <string>
 
 /**
@@ -160,7 +161,18 @@ unsigned char RequestHandler::HandleGET() {
         "Content-type:text/html\n"
         "Connection: close\n");
 
-    // TODO: send html
+    // Read index.html and send it to the client.
+    File html = SPIFFS.open("/index.html", "r");
+    if (html) {
+      while (html.available()) {
+        client.println(html.readStringUntil('\n'));
+      }
+      html.close();
+    } else {
+      // Couldn't open HTML file, bail out.
+      return REQUEST_ERROR;
+    }
+
     return REQUEST_FINISHED_GET;
   }
 
