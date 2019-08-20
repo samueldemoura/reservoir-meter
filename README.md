@@ -31,7 +31,4 @@ Has a couple parts:
 ### Configuration
 After all the steps above, the ESP8266 should boot and, after a few second of failing to connect to a WiFi AP, start its own. The default ssid name is `reservoirmeter` and the default password is `2907158928`. Connect to it, and then visit `http://192.168.4.1/` in your browser.
 
-Input all the necessary values and click save. The browser should show there was an empty response. If everything went okay, reboot the ESP8266 and it should connect correctly to the WiFi AP specified in the configuration page.
-
-### Caveats
-The code for the configuration page is very primitive. As so, special characters in any of the fields won't work.
+Input all the necessary values and click save. If everything went okay, reboot the ESP8266 and it should connect correctly to the WiFi AP specified in the configuration page.
