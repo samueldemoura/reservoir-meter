@@ -59,9 +59,6 @@ unsigned char RequestHandler::HandleClient() {
             "HTTP/1.1 400 ERROR\n"
             "Connection: close\n");
         goto disconnect;
-      case REQUEST_ONGOING:
-        // Do nothing.
-        break;
       case REQUEST_FINISHED_GET:
         // Already sent response, just need to close connection.
         goto disconnect;
@@ -74,6 +71,10 @@ unsigned char RequestHandler::HandleClient() {
         client.println(
             "Your settings were saved. Please reboot the ESP8266.");
         goto disconnect;
+        case REQUEST_ONGOING:
+        default:
+        // Do nothing.
+        break;
       }
     }
   }
@@ -184,12 +185,17 @@ unsigned char RequestHandler::HandleGET() {
  * Handles a single line from a client's POST request.
  */
 unsigned char RequestHandler::HandlePOST() {
-  if (this->reading_request_body) {
-    //
-  } else {
+  if (!this->reading_request_body) {
+    if (this->cur_line.length() == 0) {
+      // Empty line after the headers. Body starts here.
+      this->reading_request_body = true;
+      return REQUEST_ONGOING;
+    }
+
     if (this->cur_line.find("Content-Length: ") == 0) {
       // Found Content-Length header, parse it.
       this->content_length = std::atoi(this->cur_line.substr(16).c_str());
+      return REQUEST_ONGOING;
     }
   }
 }

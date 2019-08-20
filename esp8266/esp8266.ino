@@ -115,7 +115,7 @@ void setup() {
     serverSetup();
   } else {
     // Connected to WiFi properly, no need for any other setup steps.
-    Serial.print(" * Success! IP address is: ");
+    Serial.print("\n * Success! IP address is: ");
     Serial.println(WiFi.localIP());
   }
 }
