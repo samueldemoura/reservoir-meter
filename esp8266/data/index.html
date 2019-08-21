@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>reservoir-meter config</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- UIkit CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.1.6/css/uikit.min.css" />
+</head>
+
+<body>
+  <nav class="uk-navbar-container uk-navbar-transparent uk-background-primary uk-light" uk-navbar>
+    <div class="uk-navbar-left">
+      <ul class="uk-navbar-left">
+        <li class="uk-navbar-item uk-logo">reservoir-meter</li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="uk-container uk-container-small">
+    <form class="uk-margin-top" action="/" , method="POST">
+      <fieldset class="uk-fieldset">
+
+        <legend class="uk-legend">WiFi Configuration</legend>
+
+        <div class="uk-margin">
+          <input class="uk-input" type="text" name="name" placeholder="WiFi AP name">
+        </div>
+
+        <div class="uk-margin">
+          <input class="uk-input" type="password" name="password" placeholder="WiFi password">
+        </div>
+
+        <div class="uk-margin">
+          <input class="uk-input" type="text" name="url" placeholder="Server IP">
+        </div>
+
+        <button class="uk-button uk-button-primary" type="submit">Save</button>
+
+      </fieldset>
+    </form>
+  </div>
+</body>
+
+</html>

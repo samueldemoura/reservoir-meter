@@ -12,14 +12,23 @@ Has a couple parts:
 (todo: explanation here)
 
 ## Instructions
+### Preparation
 - Redis:
     - Set up a new redis instance.
     - Change relevant configurations in `db.js` so the app can connect to it.
 - Node Webapp:
     - Install dependencies: `npm install`
     - Start dev server: `npm start`
-    - The application should now be available at `localhost:3000`.
+    - The application should now be available at `localhost:3000`. Note the IP address of the server machine.
 - ESP8266:
-    - Configure the Arduino IDE to support the ESP8266 board.
-    - Load up the `esp8266` folder in the Arduino IDE, change whatever's necessary (WiFi AP name and password, webapp server IP address, input/output pin numbers...) in `main.c`.
-    - Write sketch to the board.
+    - [Configure the Arduino IDE to support the ESP8266 board](https://github.com/esp8266/Arduino).
+    - Install the [ESP8266 filesystem uploader Arduino plugin](https://github.com/esp8266/arduino-esp8266fs-plugin/).
+    - Install the [library for the Ultrasonic sensor](https://github.com/filipeflop/Ultrasonic).
+    - Load up the `esp8266` sketch in the Arduino IDE, change whatever you deem necessary (configuration WiFi AP name and password, input/output pin numbers...) in `esp8266.ino`.
+    - Select `Tools -> ESP8266 Sketch Data Upload`. This will transfer the `index.html` in the `data` folder into the ESP8266.
+    - Write the sketch to the board.
+
+### Configuration
+After all the steps above, the ESP8266 should boot and, after a few second of failing to connect to a WiFi AP, start its own. The default ssid name is `reservoirmeter` and the default password is `2907158928`. Connect to it, and then visit `http://192.168.4.1/` in your browser.
+
+Input all the necessary values and click save. If everything went okay, reboot the ESP8266 and it should connect correctly to the WiFi AP specified in the configuration page.
